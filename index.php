@@ -143,17 +143,20 @@
                         <th>Count</th>
                     </tr>
                 </thead>
-                <tbody id="uid">
+                <tbody>
                     <?php
                         $all = countrySum();
-                        // try {
-                        //     $rate = convertMoney();
-                        //     printf('Na današnji dan 1 USD = %.2f EUR',$rate);
-                        // } catch (\Throwable $th) {
-                        //     $rate = 0.83;
-                        //     printf('Konverzija (28.1.2021.) 1 USD = %.2f EUR',$rate);
-                        //     print_r($th);
-                        // }
+                        try {
+                            $rate = convertMoney();
+                            printf('Na današnji dan 1 USD = %.2f EUR',$rate);
+                        } catch (\Throwable $th) {
+                            $rate = 0.83;
+                            printf('Konverzija (28.1.2021.) 1 USD = %.2f EUR',$rate);
+                            print_r($th);
+                        }
+                        $fp = fopen('country_transactions.csv', 'w');
+                        $header = ['Country','Amount','Currency','Count'];
+                        fputcsv($fp,$header);
                         foreach ($all as $user) {
                             echo '
                                 <tr>
@@ -163,13 +166,15 @@
                                     <td>'.$user[3].'</td>
                                 </tr>
                             ';
+                            fputcsv($fp,$user);
                         }
+                        fclose($fp);
                     ?>
                 </tbody>
             </table>
         </div>
         <hr>
-        <h2 class="d-flex justify-content-center mb-3">Transakcije po korisniku i mjesecu</h2>
+        <h2 class="d-flex justify-content-center mb-3 mt-5">Transakcije po korisniku i mjesecu</h2>
         <div class="d-flex justify-content-center mb-5">
             <div>
                 <nav>
@@ -187,7 +192,33 @@
                     $users = userMonth();
                     $counter = 0;
                     foreach ($months as $month) {
-                        echo '<div class="tab-pane fade" id="nav-'.$month.'" role="tabpanel" aria-labelledby="nav-'.$month.'-tab">'.print_r($users[$counter]).'</div>';
+                        echo '<div class="tab-pane fade" id="nav-'.$month.'" role="tabpanel" aria-labelledby="nav-'.$month.'-tab">'.
+                        '<table class="table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Amount</th>
+                                    <th>Currency</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>';
+                            $fp = fopen('user_'.$month.'_transactions.csv', 'w');
+                            $header = ['User','Amount','Currency','Count'];
+                            fputcsv($fp,$header);
+                            foreach (array_values($users)[$counter] as $user) {
+                                echo '
+                                <tr>
+                                    <td>'.$user[0].'</td>
+                                    <td>'.$user[1].'</td>
+                                    <td>'.$user[2].'</td>
+                                    <td>'.$user[3].'</td>
+                                </tr>
+                                ';
+                                fputcsv($fp,$user);
+                            }
+                            fclose($fp);
+                            echo '</tbody></table></div>';
                         $counter += 1;
                     }
                     ?>
