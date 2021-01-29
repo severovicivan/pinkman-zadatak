@@ -106,12 +106,16 @@ function userTransactions(){
 
 function eurTransactions(){
     $transactions = userTransactions();
-    // $conversion = convertMoney();
-    $conversion = 0.82;
+    try {
+        $rate = convertMoney();
+    } catch (\Throwable $th) {
+        $rate = 0.83;
+        print_r($th);
+    }
     $converted = array();
     foreach ($transactions as $transaction) {
         if ($transaction['currency'] == 'usd') {
-            $transaction['amount'] = (double)$transaction['amount'] * $conversion;
+            $transaction['amount'] = (double)$transaction['amount'] * $rate;
         }
         $transaction['currency'] = 'EUR';
         array_push($converted,$transaction);
